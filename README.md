@@ -1,6 +1,13 @@
-# ⚡ Antigravity Chat CLI
+# ⚡ Antigravity Chat (CLI & Android Mobile App)
 
-Ứng dụng nhắn tin đa năng trên Terminal với kiến trúc Client - Server riêng biệt, hỗ trợ gọi lệnh trực tiếp từ Terminal PC / Termux và tích hợp sẵn trợ lý AI **Antigravity**.
+Ứng dụng nhắn tin đa năng với kiến trúc Client - Server riêng biệt, hỗ trợ gọi lệnh trực tiếp từ Terminal PC / Termux, ứng dụng đồ họa Android Flutter và tích hợp sẵn trợ lý AI **Antigravity**.
+
+[![Download Android APK](https://img.shields.io/badge/Download-Android%20APK-brightgreen?logo=android)](https://github.com/dupdupduck/antigravity-chat/releases)
+[![Build APK](https://github.com/dupdupduck/antigravity-chat/actions/workflows/build-apk.yml/badge.svg)](https://github.com/dupdupduck/antigravity-chat/actions/workflows/build-apk.yml)
+
+### 📲 Tải file APK cho điện thoại Android
+Bạn có thể tải file cài đặt `.apk` trực tiếp tại:
+👉 **[GitHub Releases - Antigravity Chat APK](https://github.com/dupdupduck/antigravity-chat/releases)**
 
 ---
 
