@@ -8,3 +8,4 @@ build/
 # Local cache & logs
 *.log
 .antigravity_chat/
+antigravity-chat.apk

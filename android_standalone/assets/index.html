@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Antigravity Chat</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    
+    /* Header */
+    header {
+      background: #1e293b;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #334155;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
+    }
+    .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.15rem; color: #38bdf8; letter-spacing: 0.5px; }
+    .room-badge { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 12px; font-size: 0.75rem; padding: 2px 8px; }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ef4444; display: inline-block; box-shadow: 0 0 8px #ef4444; }
+    .status-dot.online { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .icon-btn { background: none; border: none; color: #94a3b8; font-size: 1.25rem; cursor: pointer; display: flex; align-items: center; }
+
+    /* Offline warning */
+    .offline-banner { background: rgba(239, 68, 68, 0.2); color: #fca5a5; font-size: 0.8rem; text-align: center; padding: 6px; border-bottom: 1px solid rgba(239, 68, 68, 0.3); display: none; cursor: pointer; }
+
+    /* Message list */
+    #messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+    
+    .msg-row { display: flex; flex-direction: column; max-width: 82%; }
+    .msg-row.me { align-self: flex-end; }
+    .msg-row.other { align-self: flex-start; }
+    
+    .msg-bubble {
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 0.95rem;
+      line-height: 1.35;
+      word-break: break-word;
+      position: relative;
+    }
+    .msg-row.me .msg-bubble {
+      background: linear-gradient(135deg, #0284c7, #0ea5e9);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+    }
+    .msg-row.other .msg-bubble {
+      background: #1e293b;
+      color: #e2e8f0;
+      border-bottom-left-radius: 4px;
+      border: 1px solid #334155;
+    }
+    .sender-name { font-size: 0.75rem; font-weight: 700; color: #38bdf8; margin-bottom: 3px; }
+    .msg-time { font-size: 0.65rem; color: rgba(255,255,255,0.5); text-align: right; margin-top: 4px; }
+
+    /* Bot message */
+    .msg-bot {
+      align-self: center;
+      width: 96%;
+      background: #1e1b4b;
+      border: 1px solid #a855f7;
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
+    }
+    .bot-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .bot-title { color: #c084fc; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
+    .bot-text { font-size: 0.9rem; color: #f3e8ff; white-space: pre-wrap; line-height: 1.4; }
+
+    /* System message */
+    .msg-sys {
+      align-self: center;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #fde68a;
+      border-radius: 16px;
+      padding: 4px 12px;
+      font-size: 0.75rem;
+    }
+
+    /* Quick Chips */
+    .chips-bar { display: flex; gap: 8px; overflow-x: auto; padding: 6px 12px; background: #0f172a; white-space: nowrap; scrollbar-width: none; }
+    .chips-bar::-webkit-scrollbar { display: none; }
+    .chip { background: #1e293b; border: 1px solid #334155; color: #38bdf8; padding: 5px 10px; border-radius: 14px; font-size: 0.75rem; cursor: pointer; }
+    .chip:active { background: #334155; }
+
+    /* Input area */
+    .input-bar {
+      background: #1e293b;
+      padding: 8px 12px;
+      display: flex;
+      gap: 8px;
+      border-top: 1px solid #334155;
+    }
+    .input-bar input {
+      flex: 1;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 24px;
+      padding: 10px 16px;
+      color: #f8fafc;
+      font-size: 0.95rem;
+      outline: none;
+    }
+    .input-bar input:focus { border-color: #38bdf8; }
+    .send-btn {
+      background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+      border: none;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 100;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 20px;
+      width: 100%;
+      max-width: 360px;
+    }
+    .modal-content h3 { margin-bottom: 14px; font-size: 1.1rem; color: #38bdf8; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px; }
+    .form-group input { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 0.9rem; }
+    .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+    .btn { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
+    .btn-primary { background: #38bdf8; color: #0f172a; }
+    .btn-secondary { background: #334155; color: #f8fafc; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span>⚡ Antigravity</span>
+      <span class="room-badge" id="roomDisplay">#general</span>
+    </div>
+    <div class="header-actions">
+      <span class="status-dot" id="statusDot"></span>
+      <button class="icon-btn" onclick="openSettings()">⚙️</button>
+    </div>
+  </header>
+
+  <div class="offline-banner" id="offlineBanner" onclick="openSettings()">
+    ⚠️ Chưa kết nối tới máy chủ (127.0.0.1:4040). Bấm để cài đặt.
+  </div>
+
+  <div id="messages">
+    <div class="msg-sys">Chào mừng bạn đến với Antigravity Chat Mobile!</div>
+  </div>
+
+  <div class="chips-bar">
+    <div class="chip" onclick="quickSend('@antigravity status')">🤖 @antigravity status</div>
+    <div class="chip" onclick="quickSend('@antigravity time')">🕒 @antigravity time</div>
+    <div class="chip" onclick="quickSend('@antigravity roll')">🎲 @antigravity roll</div>
+    <div class="chip" onclick="quickSend('@antigravity joke')">😄 @antigravity joke</div>
+    <div class="chip" onclick="quickSend('@antigravity help')">💡 @antigravity help</div>
+  </div>
+
+  <div class="input-bar">
+    <input type="text" id="msgInput" placeholder="Nhập tin nhắn hoặc @antigravity..." onkeydown="if(event.key==='Enter') sendMsg()">
+    <button class="send-btn" onclick="sendMsg()">➤</button>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal" id="settingsModal">
+    <div class="modal-content">
+      <h3>⚙️ Thiết lập máy chủ</h3>
+      <div class="form-group">
+        <label>Địa chỉ Máy chủ (IP / Host)</label>
+        <input type="text" id="cfgHost" value="127.0.0.1">
+      </div>
+      <div class="form-group">
+        <label>Cổng Port (Mặc định: 4040)</label>
+        <input type="number" id="cfgPort" value="4040">
+      </div>
+      <div class="form-group">
+        <label>Tên của bạn</label>
+        <input type="text" id="cfgName" value="AndroidUser">
+      </div>
+      <div class="form-group">
+        <label>Phòng chat (ví dụ: #general)</label>
+        <input type="text" id="cfgRoom" value="#general">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeSettings()">Đóng</button>
+        <button class="btn btn-primary" onclick="applySettings()">Kết nối lại</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let myUsername = 'AndroidUser';
+    let currentRoom = '#general';
+
+    function openSettings() { document.getElementById('settingsModal').classList.add('active'); }
+    function closeSettings() { document.getElementById('settingsModal').classList.remove('active'); }
+
+    function applySettings() {
+      const host = document.getElementById('cfgHost').value.trim();
+      const port = parseInt(document.getElementById('cfgPort').value.trim()) || 4040;
+      myUsername = document.getElementById('cfgName').value.trim() || 'AndroidUser';
+      currentRoom = document.getElementById('cfgRoom').value.trim() || '#general';
+      document.getElementById('roomDisplay').innerText = currentRoom;
+      closeSettings();
+
+      if (window.AndroidBridge && window.AndroidBridge.connect) {
+        window.AndroidBridge.connect(host, port, myUsername, currentRoom);
+      }
+    }
+
+    function quickSend(text) {
+      document.getElementById('msgInput').value = text;
+      sendMsg();
+    }
+
+    function sendMsg() {
+      const input = document.getElementById('msgInput');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+
+      if (window.AndroidBridge && window.AndroidBridge.sendMessage) {
+        window.AndroidBridge.sendMessage(text);
+      }
+    }
+
+    function onConnectionStatus(online) {
+      const dot = document.getElementById('statusDot');
+      const banner = document.getElementById('offlineBanner');
+      if (online) {
+        dot.classList.add('online');
+        banner.style.display = 'none';
+      } else {
+        dot.classList.remove('online');
+        banner.style.display = 'block';
+      }
+    }
+
+    function onMessageReceived(jsonStr) {
+      try {
+        const data = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
+        const msgList = document.getElementById('messages');
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+        if (data.is_system) {
+          const sys = document.createElement('div');
+          sys.className = 'msg-sys';
+          sys.innerText = '⚡ ' + (data.text || '');
+          msgList.appendChild(sys);
+        } else if (data.sender && data.sender.includes('Antigravity')) {
+          const bot = document.createElement('div');
+          bot.className = 'msg-bot';
+          bot.innerHTML = `
+            <div class="bot-header">
+              <span class="bot-title">🤖 Antigravity AI</span>
+              <span style="font-size: 0.65rem; color: rgba(255,255,255,0.4)">${timeStr}</span>
+            </div>
+            <div class="bot-text">${escapeHtml(data.text || '')}</div>
+          `;
+          msgList.appendChild(bot);
+        } else {
+          const isMe = data.sender === myUsername;
+          const row = document.createElement('div');
+          row.className = 'msg-row ' + (isMe ? 'me' : 'other');
+
+          let inner = '';
+          if (!isMe) inner += `<div class="sender-name">${escapeHtml(data.sender || 'Anonymous')}</div>`;
+          inner += `<div>${escapeHtml(data.text || '')}</div>`;
+          inner += `<div class="msg-time">${timeStr}</div>`;
+
+          const bubble = document.createElement('div');
+          bubble.className = 'msg-bubble';
+          bubble.innerHTML = inner;
+
+          row.appendChild(bubble);
+          msgList.appendChild(row);
+        }
+
+        msgList.scrollTop = msgList.scrollHeight;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // Auto connect on startup
+    window.addEventListener('DOMContentLoaded', () => {
+      applySettings();
+    });
+  </script>
+</body>
+</html>
